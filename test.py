@@ -12,16 +12,35 @@ class SimTest(pygods.SimObject):
             x = yield
             print x
 
+    @coroutine
+    def bar(self):
+        yield
+        print "done"
+
 class TestYield(unittest.TestCase):
 
     def testObject(self):
         sim = pygods.SimObject()
-        sim.run()
+        r = sim.runTarget()
+        self.assertRaises(StopIteration,r.next)
 
     def testSim(self):
         sim = SimTest()
         sim.target = sim.foo()
-        sim.run()
+        r = sim.runTarget()
+        r.next()
+
+    def testReady(self):
+        sim = SimTest()
+        sim.ready.put(sim.foo())
+        r = sim.runTarget()
+        r.next()
+
+    def testFinished(self):
+        sim = SimTest()
+        sim.ready.put(sim.bar())
+        r = sim.runTarget()
+        self.assertRaises(StopIteration,r.next)
 
 
 
